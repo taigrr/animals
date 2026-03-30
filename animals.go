@@ -1,6 +1,9 @@
 package animals
 
-import "sort"
+import (
+	"math/rand/v2"
+	"sort"
+)
 
 var animals = []string{
 	"anteater",
@@ -144,6 +147,25 @@ func init() {
 	sort.Strings(animals)
 }
 
+// Names returns a copy of the sorted animal name list.
 func Names() []string {
-	return animals
+	out := make([]string, len(animals))
+	copy(out, animals)
+	return out
+}
+
+// Count returns the number of animals in the list.
+func Count() int {
+	return len(animals)
+}
+
+// Contains reports whether the given name exists in the animal list.
+func Contains(name string) bool {
+	idx := sort.SearchStrings(animals, name)
+	return idx < len(animals) && animals[idx] == name
+}
+
+// Random returns a random animal name.
+func Random() string {
+	return animals[rand.IntN(len(animals))]
 }
