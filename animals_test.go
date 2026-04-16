@@ -1,7 +1,8 @@
 package animals
 
 import (
-	"sort"
+	"slices"
+	"strings"
 	"testing"
 )
 
@@ -10,7 +11,7 @@ func TestNames(t *testing.T) {
 	if len(names) == 0 {
 		t.Fatal("expected non-empty animal list")
 	}
-	if !sort.StringsAreSorted(names) {
+	if !slices.IsSorted(names) {
 		t.Fatal("expected sorted list")
 	}
 }
@@ -26,16 +27,19 @@ func TestNamesReturnsCopy(t *testing.T) {
 }
 
 func TestNamesContains(t *testing.T) {
-	names := Names()
-	found := false
-	for _, name := range names {
-		if name == "cat" {
-			found = true
-			break
-		}
-	}
-	if !found {
+	if !slices.Contains(Names(), "cat") {
 		t.Fatal("expected 'cat' in list")
+	}
+}
+
+func TestNamesNoDuplicates(t *testing.T) {
+	names := Names()
+	seen := make(map[string]struct{}, len(names))
+	for _, n := range names {
+		if _, dup := seen[n]; dup {
+			t.Fatalf("duplicate animal in list: %q", n)
+		}
+		seen[n] = struct{}{}
 	}
 }
 
@@ -87,5 +91,104 @@ func TestRandomDistribution(t *testing.T) {
 	}
 	if len(seen) < 5 {
 		t.Fatalf("Random() returned only %d unique animals in 100 calls", len(seen))
+	}
+}
+
+func TestAll(t *testing.T) {
+	var collected []string
+	for name := range All() {
+		collected = append(collected, name)
+	}
+	if !slices.Equal(collected, Names()) {
+		t.Fatal("All() should yield every animal in sorted order")
+	}
+}
+
+func TestAllEarlyBreak(t *testing.T) {
+	count := 0
+	for range All() {
+		count++
+		if count == 3 {
+			break
+		}
+	}
+	if count != 3 {
+		t.Fatalf("expected to stop after 3 items, saw %d", count)
+	}
+}
+
+func TestStartingWith(t *testing.T) {
+	tests := []struct {
+		prefix  string
+		wantMin int
+		check   func([]string) error
+	}{
+		{"b", 10, func(out []string) error {
+			for _, s := range out {
+				if !strings.HasPrefix(s, "b") {
+					t.Errorf("StartingWith(\"b\") returned %q", s)
+				}
+			}
+			return nil
+		}},
+		{"cat", 3, func(out []string) error {
+			if !slices.Contains(out, "cat") {
+				t.Error("StartingWith(\"cat\") missing 'cat'")
+			}
+			if !slices.Contains(out, "caterpillar") {
+				t.Error("StartingWith(\"cat\") missing 'caterpillar'")
+			}
+			return nil
+		}},
+		{"zzz", 0, nil},
+	}
+	for _, tt := range tests {
+		got := StartingWith(tt.prefix)
+		if len(got) < tt.wantMin {
+			t.Errorf("StartingWith(%q) returned %d results, want at least %d", tt.prefix, len(got), tt.wantMin)
+		}
+		if !slices.IsSorted(got) {
+			t.Errorf("StartingWith(%q) result not sorted", tt.prefix)
+		}
+		if tt.check != nil {
+			_ = tt.check(got)
+		}
+	}
+}
+
+func TestStartingWithEmpty(t *testing.T) {
+	got := StartingWith("")
+	if !slices.Equal(got, Names()) {
+		t.Fatal("StartingWith(\"\") should equal Names()")
+	}
+}
+
+func TestRandomN(t *testing.T) {
+	tests := []struct {
+		n    int
+		want int
+	}{
+		{-1, 0},
+		{0, 0},
+		{1, 1},
+		{5, 5},
+		{Count(), Count()},
+		{Count() + 100, Count()},
+	}
+	for _, tt := range tests {
+		got := RandomN(tt.n)
+		if len(got) != tt.want {
+			t.Errorf("RandomN(%d) returned %d items, want %d", tt.n, len(got), tt.want)
+		}
+		seen := make(map[string]struct{}, len(got))
+		for _, name := range got {
+			if _, dup := seen[name]; dup {
+				t.Errorf("RandomN(%d) returned duplicate %q", tt.n, name)
+			}
+			seen[name] = struct{}{}
+			if !Contains(name) {
+				t.Errorf("RandomN(%d) returned unknown animal %q", tt.n, name)
+			}
+		}
 	}
 }
