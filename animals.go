@@ -1,8 +1,12 @@
+// Package animals provides a sorted list of common animal names plus a
+// handful of convenience helpers for querying and sampling it.
 package animals
 
 import (
+	"iter"
 	"math/rand/v2"
-	"sort"
+	"slices"
+	"strings"
 )
 
 var animals = []string{
@@ -144,14 +148,13 @@ var animals = []string{
 }
 
 func init() {
-	sort.Strings(animals)
+	slices.Sort(animals)
+	animals = slices.Compact(animals)
 }
 
 // Names returns a copy of the sorted animal name list.
 func Names() []string {
-	out := make([]string, len(animals))
-	copy(out, animals)
-	return out
+	return slices.Clone(animals)
 }
 
 // Count returns the number of animals in the list.
@@ -160,12 +163,56 @@ func Count() int {
 }
 
 // Contains reports whether the given name exists in the animal list.
+// The comparison is case-sensitive and exact.
 func Contains(name string) bool {
-	idx := sort.SearchStrings(animals, name)
-	return idx < len(animals) && animals[idx] == name
+	_, ok := slices.BinarySearch(animals, name)
+	return ok
+}
+
+// All returns an iterator over every animal name in sorted order.
+// It is safe to break out of the range early.
+func All() iter.Seq[string] {
+	return func(yield func(string) bool) {
+		for _, name := range animals {
+			if !yield(name) {
+				return
+			}
+		}
+	}
+}
+
+// StartingWith returns a sorted copy of every animal whose name begins with
+// the given prefix. An empty prefix returns a full copy equivalent to Names.
+func StartingWith(prefix string) []string {
+	if prefix == "" {
+		return Names()
+	}
+	start, _ := slices.BinarySearch(animals, prefix)
+	var out []string
+	for i := start; i < len(animals); i++ {
+		if !strings.HasPrefix(animals[i], prefix) {
+			break
+		}
+		out = append(out, animals[i])
+	}
+	return out
 }
 
 // Random returns a random animal name.
 func Random() string {
 	return animals[rand.IntN(len(animals))]
+}
+
+// RandomN returns n distinct random animal names. If n is <= 0, it returns
+// nil. If n is greater than Count, it returns all animals in a random order.
+func RandomN(n int) []string {
+	if n <= 0 {
+		return nil
+	}
+	if n > len(animals) {
+		n = len(animals)
+	}
+	out := slices.Clone(animals)
+	rand.Shuffle(len(out), func(i, j int) { out[i], out[j] = out[j], out[i] })
+	return out[:n]
 }

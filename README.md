@@ -26,11 +26,22 @@ func main() {
 	// Get a random animal
 	fmt.Println(animals.Random())
 
+	// Get 5 distinct random animals
+	fmt.Println(animals.RandomN(5))
+
+	// Filter by prefix
+	fmt.Println(animals.StartingWith("cat")) // [cat caterpillar catfish]
+
 	// Check if an animal exists
 	fmt.Println(animals.Contains("cat")) // true
 
 	// Get the count
-	fmt.Println(animals.Count()) // 130
+	fmt.Println(animals.Count())
+
+	// Iterate without allocating a slice (Go 1.23+ range-over-func)
+	for name := range animals.All() {
+		fmt.Println(name)
+	}
 }
 ```
 
