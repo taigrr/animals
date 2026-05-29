@@ -163,6 +163,19 @@ func TestStartingWithEmpty(t *testing.T) {
 	}
 }
 
+func TestStartingWithReturnsCopy(t *testing.T) {
+	got := StartingWith("cat")
+	if len(got) < 2 {
+		t.Fatalf("expected multiple cat-prefixed names, got %v", got)
+	}
+	original := got[0]
+	got[0] = "zzz-mutated"
+	fresh := StartingWith("cat")
+	if fresh[0] != original {
+		t.Fatal("StartingWith() should return a copy; mutation leaked to source data")
+	}
+}
+
 func TestRandomN(t *testing.T) {
 	tests := []struct {
 		n    int

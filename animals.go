@@ -6,6 +6,7 @@ import (
 	"iter"
 	"math/rand/v2"
 	"slices"
+	"sort"
 	"strings"
 )
 
@@ -188,14 +189,10 @@ func StartingWith(prefix string) []string {
 		return Names()
 	}
 	start, _ := slices.BinarySearch(animals, prefix)
-	var out []string
-	for i := start; i < len(animals); i++ {
-		if !strings.HasPrefix(animals[i], prefix) {
-			break
-		}
-		out = append(out, animals[i])
-	}
-	return out
+	end := start + sort.Search(len(animals)-start, func(offset int) bool {
+		return !strings.HasPrefix(animals[start+offset], prefix)
+	})
+	return slices.Clone(animals[start:end])
 }
 
 // Random returns a random animal name.
