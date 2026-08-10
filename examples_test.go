@@ -21,10 +21,23 @@ func ExampleContains() {
 	// false
 }
 
+func ExampleCount() {
+	fmt.Println(animals.Count() > 100)
+	// Output:
+	// true
+}
+
 func ExampleStartingWith() {
 	fmt.Println(animals.StartingWith("cat"))
 	// Output:
 	// [cat caterpillar catfish]
+}
+
+func ExampleRandomN() {
+	picks := animals.RandomN(3)
+	fmt.Println(len(picks))
+	// Output:
+	// 3
 }
 
 func ExampleAll() {
