@@ -12,10 +12,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+      - name: gofmt
+        run: test -z "$(gofmt -l .)"
       - run: go vet ./...
       - name: staticcheck
         uses: dominikh/staticcheck-action@v1
         with:
           version: latest
           install-go: false
+      - run: go build ./...
       - run: go test -race ./...
