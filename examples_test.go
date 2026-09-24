@@ -33,6 +33,12 @@ func ExampleStartingWith() {
 	// [cat caterpillar catfish]
 }
 
+func ExampleStartingWith_caseSensitive() {
+	fmt.Println(animals.StartingWith("Cat"))
+	// Output:
+	// []
+}
+
 func ExampleRandomN() {
 	picks := animals.RandomN(3)
 	fmt.Println(len(picks))
