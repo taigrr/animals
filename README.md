@@ -2,6 +2,8 @@
 
 A simple Go package providing a sorted list of animal names.
 
+Lookups and prefix filters are exact and case-sensitive.
+
 ## Install
 
 ```bash
@@ -31,6 +33,7 @@ func main() {
 
 	// Filter by prefix
 	fmt.Println(animals.StartingWith("cat")) // [cat caterpillar catfish]
+	fmt.Println(animals.StartingWith("Cat")) // []
 
 	// Check if an animal exists
 	fmt.Println(animals.Contains("cat")) // true
