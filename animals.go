@@ -210,6 +210,15 @@ func RandomN(n int) []string {
 		n = len(animals)
 	}
 	out := slices.Clone(animals)
-	rand.Shuffle(len(out), func(i, j int) { out[i], out[j] = out[j], out[i] })
+	if n == len(out) {
+		rand.Shuffle(len(out), func(i, j int) { out[i], out[j] = out[j], out[i] })
+		return out
+	}
+	// Partial Fisher-Yates: only randomize the prefix the caller needs.
+	// Each selection is uniform among the remaining animals.
+	for index := 0; index < n; index++ {
+		selected := index + rand.IntN(len(out)-index)
+		out[index], out[selected] = out[selected], out[index]
+	}
 	return out[:n]
 }
